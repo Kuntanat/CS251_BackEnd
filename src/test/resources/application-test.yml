@@ -1,0 +1,21 @@
+# Test profile — H2 in-memory แทน MySQL (ไม่ต้องการ ORM)
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  sql:
+    init:
+      mode: always              # โหลด schema.sql จาก classpath อัตโนมัติ
+
+jwt:
+  secret: test-secret-key-for-unit-testing-only-do-not-use-in-production-32chars
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+logging:
+  level:
+    com.cs251.backend: DEBUG
+    org.springframework.jdbc: DEBUG

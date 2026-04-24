@@ -1,0 +1,80 @@
+services:
+  # ─────────────────────────────────────────
+  #  MySQL Database
+  # ─────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: cs251_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME:-cs251_db}
+      MYSQL_USER: ${DB_USERNAME:-cs251user}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Bangkok
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d:ro   # รัน SQL อัตโนมัติเมื่อสร้าง container
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - cs251_net
+
+  # ─────────────────────────────────────────
+  #  Spring Boot App
+  # ─────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cs251_app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_HOST: mysql       # ชื่อ service ใน docker network
+      DB_PORT: 3306
+      SERVER_PORT: ${SERVER_PORT:-8080}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - cs251_net
+
+  # ─────────────────────────────────────────
+  #  phpMyAdmin (ตัวช่วย dev — optional)
+  # ─────────────────────────────────────────
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: cs251_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8081:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    profiles:
+      - dev       # รันเฉพาะตอน: docker compose --profile dev up
+    networks:
+      - cs251_net
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  cs251_net:
+    driver: bridge
