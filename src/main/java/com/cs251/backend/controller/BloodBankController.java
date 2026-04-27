@@ -50,7 +50,7 @@ public class BloodBankController {
     /** Function 15: อัปเดตถุงเลือด */
     @PutMapping("/bags/{bagId}")
     @Operation(summary = "อัปเดตข้อมูลถุงเลือด (Function 15)")
-    public ResponseEntity<ApiResponse<Void>> updateBag(@PathVariable Integer bagId,
+    public ResponseEntity<ApiResponse<String>> updateBag(@PathVariable Integer bagId,
                                                         @RequestBody BloodBagUpdateRequest req) {
         bloodBagService.update(bagId, req);
         return ResponseEntity.ok(ApiResponse.ok("BloodBag updated"));

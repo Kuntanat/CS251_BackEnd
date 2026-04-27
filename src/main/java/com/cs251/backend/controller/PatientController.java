@@ -42,7 +42,7 @@ public class PatientController {
     /** Function 10: แก้ไขข้อมูลผู้ป่วย */
     @PutMapping("/{patientId}")
     @Operation(summary = "แก้ไขข้อมูลผู้ป่วย (Function 10)")
-    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Integer patientId,
+    public ResponseEntity<ApiResponse<String>> update(@PathVariable Integer patientId,
                                                      @Valid @RequestBody PatientRequest req) {
         patientService.update(patientId, req);
         return ResponseEntity.ok(ApiResponse.ok("Updated"));

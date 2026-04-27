@@ -2,6 +2,7 @@ package com.cs251.backend.repository;
 
 import com.cs251.backend.dto.request.DonationRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -19,7 +20,7 @@ public class DonationRepository {
 
     // ── Function 16: sp_record_donation ──────────────────────────────────────
     public Integer save(DonationRequest req) {
-        return jdbc.execute((java.sql.ConnectionCallback<Integer>) con -> {
+        return jdbc.execute((ConnectionCallback<Integer>) con -> {
             try (var cs = con.prepareCall("{CALL sp_record_donation(?,?,?,?,?)}")) {
                 cs.setDate(1, Date.valueOf(req.getDonationDate()));
                 cs.setInt(2,  req.getVolume());

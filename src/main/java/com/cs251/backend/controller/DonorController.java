@@ -44,7 +44,7 @@ public class DonorController {
     /** Function 6: แก้ไขข้อมูล Donor */
     @PutMapping("/{donorId}")
     @Operation(summary = "แก้ไขข้อมูลผู้บริจาค (Function 6)")
-    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Integer donorId,
+    public ResponseEntity<ApiResponse<String>> update(@PathVariable Integer donorId,
                                                      @RequestBody UpdateDonorRequest req) {
         donorService.update(donorId, req);
         return ResponseEntity.ok(ApiResponse.ok("Updated"));
@@ -53,7 +53,7 @@ public class DonorController {
     /** Function 7: ระงับสิทธิ์ */
     @PatchMapping("/{donorId}/suspend")
     @Operation(summary = "ระงับสิทธิ์ผู้บริจาค (Function 7)")
-    public ResponseEntity<ApiResponse<Void>> suspend(@PathVariable Integer donorId,
+    public ResponseEntity<ApiResponse<String>> suspend(@PathVariable Integer donorId,
                                                       @RequestBody Map<String, String> body) {
         donorService.suspend(donorId, body.get("remark"));
         return ResponseEntity.ok(ApiResponse.ok("Suspended"));
@@ -62,7 +62,7 @@ public class DonorController {
     /** Function 8: ยกเลิกการระงับ */
     @PatchMapping("/{donorId}/reinstate")
     @Operation(summary = "ยกเลิกการระงับสิทธิ์ (Function 8)")
-    public ResponseEntity<ApiResponse<Void>> reinstate(@PathVariable Integer donorId,
+    public ResponseEntity<ApiResponse<String>> reinstate(@PathVariable Integer donorId,
                                                         @RequestBody Map<String, String> body) {
         donorService.reinstate(donorId, body.get("remark"));
         return ResponseEntity.ok(ApiResponse.ok("Reinstated"));

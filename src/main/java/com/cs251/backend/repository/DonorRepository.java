@@ -5,6 +5,7 @@ import com.cs251.backend.dto.request.UpdateDonorRequest;
 import com.cs251.backend.entity.Donor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -38,7 +39,7 @@ public class DonorRepository {
 
     // ── Function 1: sp_register_donor ────────────────────────────────────────
     public Integer register(DonorRegisterRequest req, String hashedPassword) {
-        return jdbc.execute((java.sql.ConnectionCallback<Integer>) con -> {
+        return jdbc.execute((ConnectionCallback<Integer>) con -> {
             try (var cs = con.prepareCall("{CALL sp_register_donor(?,?,?,?,?,?,?,?,?,?,?,?,?)}")) {
                 cs.setString(1,  req.getName());
                 cs.setString(2,  req.getNationalId());

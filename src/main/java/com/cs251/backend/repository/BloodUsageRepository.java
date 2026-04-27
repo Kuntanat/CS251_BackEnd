@@ -2,6 +2,7 @@ package com.cs251.backend.repository;
 
 import com.cs251.backend.dto.request.BloodUsageRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -20,7 +21,7 @@ public class BloodUsageRepository {
     // ── Function 18: sp_record_blood_usage ───────────────────────────────────
     // Trigger after_blood_usage_insert จะ handle Function 19 อัตโนมัติ
     public Integer save(BloodUsageRequest req) {
-        return jdbc.execute((java.sql.ConnectionCallback<Integer>) con -> {
+        return jdbc.execute((ConnectionCallback<Integer>) con -> {
             try (var cs = con.prepareCall("{CALL sp_record_blood_usage(?,?,?,?,?)}")) {
                 cs.setDate(1, Date.valueOf(req.getUsageDate()));
                 cs.setInt(2,  req.getPatientId());

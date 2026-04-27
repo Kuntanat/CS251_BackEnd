@@ -17,7 +17,7 @@ public class BloodBagService {
 
     // ── Function 13: แสดงตารางคลังเลือด ─────────────────────────────────────
     public List<BloodBagResponse> findAll() {
-        return bloodBagRepository.findAllOrderByExpiry().stream()
+        return bloodBagRepository.findAll().stream()
                 .map(BloodBagResponse::from).collect(Collectors.toList());
     }
 
@@ -29,13 +29,6 @@ public class BloodBagService {
 
     // ── Function 15: อัปเดตถุงเลือด ─────────────────────────────────────────
     public void update(Integer bagId, BloodBagUpdateRequest req) {
-        bloodBagRepository.update(
-                bagId,
-                req.getBloodGroup(),
-                req.getRhFactor(),
-                req.getCollectionDate(),
-                req.getExpiryDate(),
-                req.getDonationId()
-        );
+        bloodBagRepository.update(bagId, req);
     }
 }
