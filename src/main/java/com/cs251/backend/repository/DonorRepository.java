@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.Date;
 import java.sql.Types;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -106,5 +107,44 @@ public class DonorRepository {
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
+    }
+
+    // ── Donor Self: Profile (Donor + DonorContact) ───────────────────────────
+    public Map<String, Object> getProfile(Integer donorId) {
+        // ใช้ queryForList เพื่อดึง contact หลายรายการโดยไม่ต้องสร้าง entity เพิ่ม
+        var donor = jdbc.queryForObject("CALL sp_find_donor_by_id(?)", DONOR_MAPPER, donorId);
+        if (donor == null) {
+            throw new IllegalArgumentException("Donor not found: " + donorId);
+        }
+
+        List<Map<String, Object>> contacts = jdbc.queryForList(
+                "SELECT ContactType, ContactValue FROM DonorContact WHERE DonorID = ?",
+                donorId
+        );
+
+        return Map.of(
+                "donor", donor,
+                "contacts", contacts
+        );
+    }
+
+    // ── Donor Self: Dashboard summary ────────────────────────────────────────
+    public Map<String, Object> getDashboardSummary(Integer donorId) {
+        // รวมข้อมูลหลักที่ Figma ต้องใช้: latest donation, next eligible, total donation count
+        return jdbc.queryForMap(
+                """
+                SELECT
+                    d.DonorID AS donorId,
+                    d.Status AS donorStatus,
+                    MAX(dn.DonationDate) AS latestDonationDate,
+                    MAX(dn.NextEligibleDate) AS nextEligibleDate,
+                    SUM(CASE WHEN dn.Volume > 0 THEN 1 ELSE 0 END) AS totalDonations
+                FROM Donor d
+                LEFT JOIN Donation dn ON dn.DonorID = d.DonorID
+                WHERE d.DonorID = ?
+                GROUP BY d.DonorID, d.Status
+                """,
+                donorId
+        );
     }
 }

@@ -3,6 +3,9 @@ package com.cs251.backend.controller;
 import com.cs251.backend.dto.request.DonorRegisterRequest;
 import com.cs251.backend.dto.request.UpdateDonorRequest;
 import com.cs251.backend.dto.response.ApiResponse;
+import com.cs251.backend.dto.response.DonorDashboardResponse;
+import com.cs251.backend.dto.response.DonorDonationHistoryResponse;
+import com.cs251.backend.dto.response.DonorProfileResponse;
 import com.cs251.backend.dto.response.DonorResponse;
 import com.cs251.backend.service.DonorService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -75,5 +78,27 @@ public class DonorController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer donorId) {
         return ResponseEntity.ok(ApiResponse.ok(donorService.search(name, donorId)));
+    }
+
+    /** ดูโปรไฟล์ผู้บริจาค */
+    @GetMapping("/{donorId}/profile")
+    @Operation(summary = "ดูโปรไฟล์ผู้บริจาค")
+    public ResponseEntity<ApiResponse<DonorProfileResponse>> getProfile(@PathVariable Integer donorId) {
+        return ResponseEntity.ok(ApiResponse.ok(donorService.getProfile(donorId)));
+    }
+
+    /** ดูประวัติการบริจาค */
+    @GetMapping("/{donorId}/donations")
+    @Operation(summary = "ดูประวัติการบริจาค")
+    public ResponseEntity<ApiResponse<List<DonorDonationHistoryResponse>>> getDonationHistory(
+            @PathVariable Integer donorId) {
+        return ResponseEntity.ok(ApiResponse.ok(donorService.getDonationHistory(donorId)));
+    }
+
+     /** สรุปภาพรวมผู้บริจาค */
+    @GetMapping("/{donorId}/dashboard")
+    @Operation(summary = "สรุปภาพรวมผู้บริจาค")
+    public ResponseEntity<ApiResponse<DonorDashboardResponse>> getDashboard(@PathVariable Integer donorId) {
+        return ResponseEntity.ok(ApiResponse.ok(donorService.getDashboard(donorId)));
     }
 }
