@@ -1,7 +1,7 @@
 package com.cs251.backend.controller;
 
+import com.cs251.backend.dto.request.DonorRegisterRequest;
 import com.cs251.backend.dto.request.LoginRequest;
-import com.cs251.backend.dto.request.RegisterRequest;
 import com.cs251.backend.dto.response.ApiResponse;
 import com.cs251.backend.dto.response.AuthResponse;
 import com.cs251.backend.service.AuthService;
@@ -25,12 +25,12 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    @Operation(summary = "ลงทะเบียนผู้ใช้ใหม่")
+    @Operation(summary = "ลงทะเบียนผู้บริจาคใหม่ — สร้าง Donor + Account + DonorContact พร้อม BCrypt")
     public ResponseEntity<ApiResponse<AuthResponse>> register(
-            @Valid @RequestBody RegisterRequest request) {
+            @Valid @RequestBody DonorRegisterRequest request) {
         AuthResponse authResponse = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.ok("Registration successful", authResponse));
+                .body(ApiResponse.ok("สมัครสมาชิกสำเร็จ", authResponse));
     }
 
     @PostMapping("/login")

@@ -51,6 +51,17 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(PUBLIC_URLS).permitAll()
+                // Donor self-service (must come before the broader /api/donors/**)
+                .requestMatchers("/api/donors/me/**").hasRole("DONOR")
+                // Employee-only management endpoints
+                .requestMatchers("/api/donors/**").hasRole("EMPLOYEE")
+                .requestMatchers("/api/patients/**").hasRole("EMPLOYEE")
+                .requestMatchers("/api/blood/**").hasRole("EMPLOYEE")
+                .requestMatchers("/api/dashboard/**").hasRole("EMPLOYEE")
+                .requestMatchers("/api/reports/**").hasRole("EMPLOYEE")
+                .requestMatchers("/api/deferrals/**").hasRole("EMPLOYEE")
+                .requestMatchers("/api/alerts/**").hasRole("EMPLOYEE")
+                .requestMatchers("/api/employees/**").hasRole("EMPLOYEE")
                 .anyRequest().authenticated()
             )
             .sessionManagement(session ->

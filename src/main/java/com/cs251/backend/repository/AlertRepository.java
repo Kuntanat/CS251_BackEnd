@@ -26,6 +26,7 @@ public class AlertRepository {
                 SELECT BagID, ComponentType, BloodGroup, RhFactor, ExpiryDate
                 FROM BloodBag
                 WHERE BagStatus = 0
+                  AND ExpiryDate >= CURDATE()
                   AND ExpiryDate <= DATE_ADD(CURDATE(), INTERVAL 3 DAY)
                 ORDER BY ExpiryDate ASC
                 LIMIT 10

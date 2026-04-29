@@ -47,11 +47,37 @@ public class ManagementController {
 
     /** Function 24: ตารางรายงานการรับบริจาค */
     @GetMapping("/reports/donations")
-    @Tag(name = "Dashboard", description = "สรุปข้อมูลสำหรับ Dashboard")
+    @Tag(name = "Dashboard")
     @Operation(summary = "รายงานการรับบริจาครายเดือน (Function 24)")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getDonationReport(
             @RequestParam int month,
             @RequestParam int year) {
         return ResponseEntity.ok(ApiResponse.ok(dashboardService.getDonationReport(month, year)));
+    }
+
+    /** Dashboard counts: active donors, available bags, expiring, dispensed today */
+    @GetMapping("/dashboard/stats")
+    @Tag(name = "Dashboard")
+    @Operation(summary = "นับจำนวนสถิติหลักสำหรับ Dashboard")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboardStats() {
+        return ResponseEntity.ok(ApiResponse.ok(dashboardService.getStats()));
+    }
+
+    /** รายงานการจ่ายเลือดรายวัน — ใช้สำหรับ Chart จ่ายออก */
+    @GetMapping("/reports/usage")
+    @Tag(name = "Dashboard")
+    @Operation(summary = "รายงานการจ่ายเลือดรายวันในเดือน (สำหรับกราฟเปรียบเทียบ)")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getUsageReport(
+            @RequestParam int month,
+            @RequestParam int year) {
+        return ResponseEntity.ok(ApiResponse.ok(dashboardService.getUsageReport(month, year)));
+    }
+
+    /** Blood stock by group/Rh */
+    @GetMapping("/dashboard/blood-stock")
+    @Tag(name = "Dashboard")
+    @Operation(summary = "สต็อกเลือดจำแนกตามกรุ๊ปและ Rh")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getBloodStock() {
+        return ResponseEntity.ok(ApiResponse.ok(dashboardService.getBloodStock()));
     }
 }

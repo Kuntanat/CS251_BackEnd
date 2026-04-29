@@ -17,6 +17,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+
 import java.util.List;
 import java.util.Map;
 
@@ -80,14 +83,14 @@ public class DonorController {
         return ResponseEntity.ok(ApiResponse.ok(donorService.search(name, donorId)));
     }
 
-    /** ดูโปรไฟล์ผู้บริจาค */
+    /** ดูโปรไฟล์ผู้บริจาค (Employee) */
     @GetMapping("/{donorId}/profile")
     @Operation(summary = "ดูโปรไฟล์ผู้บริจาค")
     public ResponseEntity<ApiResponse<DonorProfileResponse>> getProfile(@PathVariable Integer donorId) {
         return ResponseEntity.ok(ApiResponse.ok(donorService.getProfile(donorId)));
     }
 
-    /** ดูประวัติการบริจาค */
+    /** ดูประวัติการบริจาค (Employee) */
     @GetMapping("/{donorId}/donations")
     @Operation(summary = "ดูประวัติการบริจาค")
     public ResponseEntity<ApiResponse<List<DonorDonationHistoryResponse>>> getDonationHistory(
@@ -95,10 +98,37 @@ public class DonorController {
         return ResponseEntity.ok(ApiResponse.ok(donorService.getDonationHistory(donorId)));
     }
 
-     /** สรุปภาพรวมผู้บริจาค */
+    /** สรุปภาพรวมผู้บริจาค (Employee) */
     @GetMapping("/{donorId}/dashboard")
     @Operation(summary = "สรุปภาพรวมผู้บริจาค")
     public ResponseEntity<ApiResponse<DonorDashboardResponse>> getDashboard(@PathVariable Integer donorId) {
         return ResponseEntity.ok(ApiResponse.ok(donorService.getDashboard(donorId)));
+    }
+
+    // ── Donor Self-Service (/me) ──────────────────────────────────────────────
+
+    /** โปรไฟล์ตัวเอง (Donor only) */
+    @GetMapping("/me/profile")
+    @PreAuthorize("hasRole('DONOR')")
+    @Operation(summary = "โปรไฟล์ผู้บริจาค (Self)")
+    public ResponseEntity<ApiResponse<DonorProfileResponse>> getMyProfile(Authentication auth) {
+        return ResponseEntity.ok(ApiResponse.ok(donorService.getMyProfile(auth.getName())));
+    }
+
+    /** Dashboard ตัวเอง (Donor only) */
+    @GetMapping("/me/dashboard")
+    @PreAuthorize("hasRole('DONOR')")
+    @Operation(summary = "สรุปภาพรวมผู้บริจาค (Self)")
+    public ResponseEntity<ApiResponse<DonorDashboardResponse>> getMyDashboard(Authentication auth) {
+        return ResponseEntity.ok(ApiResponse.ok(donorService.getMyDashboard(auth.getName())));
+    }
+
+    /** ประวัติการบริจาคตัวเอง (Donor only) */
+    @GetMapping("/me/donations")
+    @PreAuthorize("hasRole('DONOR')")
+    @Operation(summary = "ประวัติการบริจาค (Self)")
+    public ResponseEntity<ApiResponse<List<DonorDonationHistoryResponse>>> getMyDonationHistory(
+            Authentication auth) {
+        return ResponseEntity.ok(ApiResponse.ok(donorService.getMyDonationHistory(auth.getName())));
     }
 }

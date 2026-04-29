@@ -6,6 +6,8 @@ import com.cs251.backend.dto.response.DonorDashboardResponse;
 import com.cs251.backend.dto.response.DonorProfileResponse;
 import com.cs251.backend.dto.response.DonorDonationHistoryResponse;
 import com.cs251.backend.dto.response.DonorResponse;
+import com.cs251.backend.entity.Account;
+import com.cs251.backend.repository.AccountRepository;
 import com.cs251.backend.repository.DonationReadRepository;
 import com.cs251.backend.repository.DonorRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class DonorService {
 
     private final DonorRepository donorRepository;
     private final DonationReadRepository donationReadRepository;
+    private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
 
     // ── Function 1 ────────────────────────────────────────────────────────────
@@ -91,6 +94,29 @@ public class DonorService {
                 .readyToDonate(ready)
                 .totalDonations(row.get("totalDonations") == null ? 0 : ((Number) row.get("totalDonations")).intValue())
                 .build();
+    }
+
+    // ── Donor Self-Service (/me) ──────────────────────────────────────────────
+
+    public DonorProfileResponse getMyProfile(String username) {
+        Integer donorId = getDonorIdByUsername(username);
+        return getProfile(donorId);
+    }
+
+    public DonorDashboardResponse getMyDashboard(String username) {
+        Integer donorId = getDonorIdByUsername(username);
+        return getDashboard(donorId);
+    }
+
+    public List<DonorDonationHistoryResponse> getMyDonationHistory(String username) {
+        Integer donorId = getDonorIdByUsername(username);
+        return getDonationHistory(donorId);
+    }
+
+    private Integer getDonorIdByUsername(String username) {
+        Account account = accountRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+        return account.getReferenceId();
     }
 
     private static LocalDate toLocalDate(Object val) {

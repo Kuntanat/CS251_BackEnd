@@ -66,17 +66,35 @@ public class DonorRepository {
         return jdbc.query("CALL sp_list_donors()", DONOR_MAPPER);
     }
 
-    // ── Function 6: sp_update_donor ──────────────────────────────────────────
+    // ── Function 6: update donor (COALESCE — null fields keep existing values) ─
     public void update(Integer donorId, UpdateDonorRequest req) {
-        jdbc.update("CALL sp_update_donor(?,?,?,?,?,?,?)",
-                donorId,
+        jdbc.update("""
+                UPDATE Donor SET
+                    Name              = COALESCE(?, Name),
+                    Birthday          = COALESCE(?, Birthday),
+                    CongenitalDisease = COALESCE(?, CongenitalDisease)
+                WHERE DonorID = ?
+                """,
                 req.getName(),
                 req.getBirthday() != null ? Date.valueOf(req.getBirthday()) : null,
                 req.getCongenitalDisease(),
-                req.getPhone(),
-                req.getEmail(),
-                req.getPlace()
+                donorId
         );
+        if (req.getPhone() != null && !req.getPhone().isBlank()) {
+            jdbc.update(
+                "UPDATE DonorContact SET ContactValue = ? WHERE DonorID = ? AND ContactType = 'Phone'",
+                req.getPhone(), donorId);
+        }
+        if (req.getEmail() != null && !req.getEmail().isBlank()) {
+            jdbc.update(
+                "UPDATE DonorContact SET ContactValue = ? WHERE DonorID = ? AND ContactType = 'Email'",
+                req.getEmail(), donorId);
+        }
+        if (req.getPlace() != null && !req.getPlace().isBlank()) {
+            jdbc.update(
+                "UPDATE DonorContact SET ContactValue = ? WHERE DonorID = ? AND ContactType = 'Place'",
+                req.getPlace(), donorId);
+        }
     }
 
     // ── Function 7: sp_suspend_donor ─────────────────────────────────────────

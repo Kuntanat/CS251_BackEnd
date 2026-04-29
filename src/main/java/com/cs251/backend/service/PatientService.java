@@ -38,4 +38,10 @@ public class PatientService {
         return patientRepository.search(name, patientId).stream()
                 .map(PatientResponse::from).collect(Collectors.toList());
     }
+
+    public PatientResponse findById(Integer patientId) {
+        return patientRepository.findById(patientId)
+                .map(PatientResponse::from)
+                .orElseThrow(() -> new IllegalArgumentException("Patient not found: " + patientId));
+    }
 }

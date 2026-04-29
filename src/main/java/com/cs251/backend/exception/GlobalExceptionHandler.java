@@ -2,6 +2,7 @@ package com.cs251.backend.exception;
 
 import com.cs251.backend.dto.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -33,6 +34,18 @@ public class GlobalExceptionHandler {
                         .message("Validation failed")
                         .data(errors)
                         .build());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateKey(DataIntegrityViolationException ex) {
+        String msg = ex.getMessage() != null ? ex.getMessage().toLowerCase() : "";
+        if (msg.contains("username") || msg.contains("uq_account_username")) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("ชื่อผู้ใช้นี้ถูกใช้งานแล้ว กรุณาเลือกชื่อผู้ใช้ใหม่"));
+        }
+        if (msg.contains("nationalid") || msg.contains("uq_donor_national")) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("เลขบัตรประชาชนนี้มีในระบบแล้ว"));
+        }
+        return ResponseEntity.badRequest().body(ApiResponse.error("ข้อมูลซ้ำกับที่มีในระบบ กรุณาตรวจสอบอีกครั้ง"));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

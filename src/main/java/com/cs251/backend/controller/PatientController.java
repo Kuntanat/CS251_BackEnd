@@ -56,4 +56,11 @@ public class PatientController {
             @RequestParam(required = false) Integer patientId) {
         return ResponseEntity.ok(ApiResponse.ok(patientService.search(name, patientId)));
     }
+
+    /** ค้นหาผู้ป่วยตาม ID */
+    @GetMapping("/{patientId}")
+    @Operation(summary = "ดูข้อมูลผู้ป่วยตาม ID")
+    public ResponseEntity<ApiResponse<PatientResponse>> findById(@PathVariable Integer patientId) {
+        return ResponseEntity.ok(ApiResponse.ok(patientService.findById(patientId)));
+    }
 }

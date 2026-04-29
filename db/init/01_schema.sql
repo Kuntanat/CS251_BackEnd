@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS BloodBag (
     CONSTRAINT pk_blood_bag    PRIMARY KEY (BagID),
     CONSTRAINT fk_bb_donation  FOREIGN KEY (DonationID) REFERENCES Donation(DonationID) ON UPDATE CASCADE,
     CONSTRAINT chk_bb_rh       CHECK (RhFactor IN ('+','-')),
-    CONSTRAINT chk_bb_status   CHECK (BagStatus IN (0,1,2,3))
+    CONSTRAINT chk_bb_status   CHECK (BagStatus IN (0,1,2,3,4))
 ) ENGINE=InnoDB COMMENT='ถุงเลือดและส่วนประกอบ';
 
 -- ────────────────────────────────────────────────────────────
