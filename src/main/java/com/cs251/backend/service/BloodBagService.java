@@ -49,6 +49,7 @@ public class BloodBagService {
     }
 
     public List<BloodBagResponse> findAvailableByBloodType(String bloodGroup, String rhFactor) {
+        try { bloodBagRepository.markExpiredBags(); } catch (Exception ignored) {}
         return bloodBagRepository.findAvailableByBloodType(bloodGroup, rhFactor).stream()
                 .map(BloodBagResponse::from).collect(Collectors.toList());
     }

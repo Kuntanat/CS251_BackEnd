@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class BloodBagResponse {
     private Integer bagId;
+    private Integer donationId;
     private String componentType;
     private String bloodGroup;
     private String rhFactor;
@@ -21,6 +22,7 @@ public class BloodBagResponse {
     public static BloodBagResponse from(BloodBag b) {
         return BloodBagResponse.builder()
                 .bagId(b.getBagId())
+                .donationId(b.getDonationId())
                 .componentType(b.getComponentType())
                 .bloodGroup(b.getBloodGroup())
                 .rhFactor(b.getRhFactor())

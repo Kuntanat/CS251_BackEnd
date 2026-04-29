@@ -18,11 +18,12 @@ public class BloodTestService {
     @Transactional
     public Integer record(BloodTestRequest req) {
         Integer testId = bloodTestRepository.save(req);
-        // Explicitly update BagStatus based on result (do not rely on trigger alone)
+        // Update ALL bags from the same donation — one test result covers the whole session
+        Integer donationId = bloodBagRepository.getDonationIdByBagId(req.getBagId());
         if ("Negative All".equals(req.getInfectiousDiseaseResult())) {
-            bloodBagRepository.updateStatus(req.getBagId(), 0); // Available
+            bloodBagRepository.updateStatusByDonationId(donationId, 0); // Available
         } else {
-            bloodBagRepository.updateStatus(req.getBagId(), 3); // Discard (reactive)
+            bloodBagRepository.updateStatusByDonationId(donationId, 3); // Discard (reactive)
         }
         return testId;
     }

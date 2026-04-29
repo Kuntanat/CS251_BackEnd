@@ -37,19 +37,29 @@ public class DashboardRepository {
 
     public Map<String, Object> getStats() {
         Map<String, Object> stats = new java.util.LinkedHashMap<>();
-        stats.put("activeDonors",   jdbc.queryForObject("SELECT COUNT(*) FROM Donor WHERE Status = 1", Integer.class));
-        stats.put("availableBags",  jdbc.queryForObject("SELECT COUNT(*) FROM BloodBag WHERE BagStatus = 0", Integer.class));
+        stats.put("activeDonors",   jdbc.queryForObject(
+                "SELECT COUNT(*) FROM Donor WHERE Status = 1", Integer.class));
+        // Available = status 0 AND not yet past expiry date
+        stats.put("availableBags",  jdbc.queryForObject(
+                "SELECT COUNT(*) FROM BloodBag WHERE BagStatus = 0 AND ExpiryDate >= CURDATE()", Integer.class));
+        // Expiring soon = available bags whose expiry is within 7 days (but not yet expired)
         stats.put("expiringSoon",   jdbc.queryForObject(
-                "SELECT COUNT(*) FROM BloodBag WHERE BagStatus = 0 AND ExpiryDate <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)", Integer.class));
+                "SELECT COUNT(*) FROM BloodBag WHERE BagStatus = 0 " +
+                "AND ExpiryDate >= CURDATE() AND ExpiryDate <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)", Integer.class));
+        // Expired = date has passed AND bag hasn't been used (2) or discarded (3) yet
+        // Uses ExpiryDate directly so the count is accurate regardless of BagStatus value
+        stats.put("expiredBags",    jdbc.queryForObject(
+                "SELECT COUNT(*) FROM BloodBag WHERE ExpiryDate < CURDATE() AND BagStatus NOT IN (2, 3)", Integer.class));
         stats.put("dispensedToday", jdbc.queryForObject(
                 "SELECT COUNT(*) FROM BloodUsage WHERE UsageDate = CURDATE()", Integer.class));
         return stats;
     }
 
+    // Only count non-expired available bags in the stock breakdown
     public List<Map<String, Object>> getBloodStock() {
         return jdbc.queryForList(
                 "SELECT BloodGroup, RhFactor, COUNT(*) AS units " +
-                "FROM BloodBag WHERE BagStatus = 0 " +
+                "FROM BloodBag WHERE BagStatus = 0 AND ExpiryDate >= CURDATE() " +
                 "GROUP BY BloodGroup, RhFactor ORDER BY BloodGroup, RhFactor");
     }
 }

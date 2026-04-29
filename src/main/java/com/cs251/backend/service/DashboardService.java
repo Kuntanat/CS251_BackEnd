@@ -39,6 +39,8 @@ public class DashboardService {
     }
 
     public Map<String, Object> getStats() {
+        // Ensure bags past their expiry date are marked before counting
+        try { bloodBagRepository.markExpiredBags(); } catch (Exception ignored) {}
         return dashboardRepository.getStats();
     }
 

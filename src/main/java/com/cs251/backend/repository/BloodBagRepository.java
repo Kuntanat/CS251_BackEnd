@@ -105,6 +105,17 @@ public class BloodBagRepository {
         jdbc.update("UPDATE BloodBag SET BagStatus = ? WHERE BagID = ?", status, bagId);
     }
 
+    // ── Look up donationId for a given bag ───────────────────────────────────
+    public Integer getDonationIdByBagId(Integer bagId) {
+        return jdbc.queryForObject(
+                "SELECT DonationID FROM BloodBag WHERE BagID = ?", Integer.class, bagId);
+    }
+
+    // ── Update ALL bags in the same donation (bulk status after lab test) ────
+    public void updateStatusByDonationId(Integer donationId, int status) {
+        jdbc.update("UPDATE BloodBag SET BagStatus = ? WHERE DonationID = ?", status, donationId);
+    }
+
     // ── Auto-expire: mark bags past ExpiryDate as BagStatus=4 ───────────────
     public void markExpiredBags() {
         jdbc.update(
@@ -116,7 +127,8 @@ public class BloodBagRepository {
         return jdbc.query(
                 "SELECT BagID, ComponentType, BloodGroup, RhFactor, " +
                 "CollectionDate, ExpiryDate, BagStatus, DonationID " +
-                "FROM BloodBag WHERE BagStatus = 0 AND BloodGroup = ? AND RhFactor = ? " +
+                "FROM BloodBag WHERE BagStatus = 0 AND ExpiryDate >= CURDATE() " +
+                "AND BloodGroup = ? AND RhFactor = ? " +
                 "ORDER BY ExpiryDate ASC",
                 BAG_MAPPER, bloodGroup, rhFactor);
     }
