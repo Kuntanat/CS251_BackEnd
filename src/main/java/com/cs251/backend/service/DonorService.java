@@ -79,17 +79,24 @@ public class DonorService {
     public DonorDashboardResponse getDashboard(Integer donorId) {
         Map<String, Object> row = donorRepository.getDashboardSummary(donorId);
 
-        LocalDate nextEligible = (LocalDate) row.get("nextEligibleDate");
+        LocalDate nextEligible = toLocalDate(row.get("nextEligibleDate"));
         Integer donorStatus = ((Number) row.get("donorStatus")).intValue();
 
         boolean ready = donorStatus == 1 && (nextEligible == null || !nextEligible.isAfter(LocalDate.now()));
 
         return DonorDashboardResponse.builder()
                 .donorId(((Number) row.get("donorId")).intValue())
-                .latestDonationDate((LocalDate) row.get("latestDonationDate"))
+                .latestDonationDate(toLocalDate(row.get("latestDonationDate")))
                 .nextEligibleDate(nextEligible)
                 .readyToDonate(ready)
                 .totalDonations(row.get("totalDonations") == null ? 0 : ((Number) row.get("totalDonations")).intValue())
                 .build();
+    }
+
+    private static LocalDate toLocalDate(Object val) {
+        if (val == null) return null;
+        if (val instanceof java.sql.Date d) return d.toLocalDate();
+        if (val instanceof LocalDate ld) return ld;
+        return null;
     }
 }

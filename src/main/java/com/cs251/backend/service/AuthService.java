@@ -3,8 +3,8 @@ package com.cs251.backend.service;
 import com.cs251.backend.dto.request.LoginRequest;
 import com.cs251.backend.dto.request.RegisterRequest;
 import com.cs251.backend.dto.response.AuthResponse;
-import com.cs251.backend.entity.User;
-import com.cs251.backend.repository.UserRepository;
+import com.cs251.backend.entity.Account;
+import com.cs251.backend.repository.AccountRepository;
 import com.cs251.backend.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,60 +12,25 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final AccountRepository accountRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
 
-    /**
-     * ลงทะเบียนผู้ใช้ใหม่
-     */
-    @Transactional
+    /** ไม่รองรับ — ใช้ /api/donors/register หรือ /api/employees/register แทน */
     public AuthResponse register(RegisterRequest request) {
-        // ตรวจสอบว่า username ซ้ำไหม
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new IllegalArgumentException("Username '" + request.getUsername() + "' is already taken");
-        }
-
-        // ตรวจสอบว่า email ซ้ำไหม
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email '" + request.getEmail() + "' is already registered");
-        }
-
-        // สร้าง User entity
-        User user = User.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .fullName(request.getFullName())
-                .role(User.Role.USER)
-                .build();
-
-        User savedUser = userRepository.save(user);
-        log.info("New user registered: {}", savedUser.getUsername());
-
-        // Generate JWT
-        UserDetails userDetails = userDetailsService.loadUserByUsername(savedUser.getUsername());
-        String token = jwtTokenProvider.generateToken(userDetails);
-
-        return buildAuthResponse(token, savedUser);
+        throw new IllegalArgumentException(
+                "กรุณาใช้ /api/donors/register หรือ /api/employees/register แทน");
     }
 
-    /**
-     * เข้าสู่ระบบ
-     */
     public AuthResponse login(LoginRequest request) {
-        // Authenticate ด้วย Spring Security
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
@@ -73,47 +38,39 @@ public class AuthService {
                 )
         );
 
-        User user = userRepository.findByUsername(request.getUsername())
+        Account account = accountRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(account.getUsername());
         String token = jwtTokenProvider.generateToken(userDetails);
 
-        log.info("User logged in: {}", user.getUsername());
-        return buildAuthResponse(token, user);
+        log.info("User logged in: {}", account.getUsername());
+        return buildAuthResponse(token, account);
     }
 
-    /**
-     * ดึงข้อมูลตัวเอง
-     */
-    @Transactional(readOnly = true)
     public AuthResponse.UserInfo getMe(String username) {
-        User user = userRepository.findByUsername(username)
+        Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        return AuthResponse.UserInfo.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .fullName(user.getFullName())
-                .role(user.getRole().name())
-                .build();
+        return buildUserInfo(account);
     }
 
-    // ---- Private helpers ----
-
-    private AuthResponse buildAuthResponse(String token, User user) {
+    private AuthResponse buildAuthResponse(String token, Account account) {
         return AuthResponse.builder()
                 .accessToken(token)
                 .tokenType("Bearer")
                 .expiresIn(jwtTokenProvider.getExpirationTime())
-                .user(AuthResponse.UserInfo.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .email(user.getEmail())
-                        .fullName(user.getFullName())
-                        .role(user.getRole().name())
-                        .build())
+                .user(buildUserInfo(account))
+                .build();
+    }
+
+    private AuthResponse.UserInfo buildUserInfo(Account account) {
+        return AuthResponse.UserInfo.builder()
+                .id((long) account.getReferenceId())
+                .username(account.getUsername())
+                .email(null)
+                .fullName(null)
+                .role(account.getUserType())
                 .build();
     }
 }

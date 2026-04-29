@@ -111,11 +111,8 @@ public class DonorRepository {
 
     // ── Donor Self: Profile (Donor + DonorContact) ───────────────────────────
     public Map<String, Object> getProfile(Integer donorId) {
-        // ใช้ queryForList เพื่อดึง contact หลายรายการโดยไม่ต้องสร้าง entity เพิ่ม
-        var donor = jdbc.queryForObject("CALL sp_find_donor_by_id(?)", DONOR_MAPPER, donorId);
-        if (donor == null) {
-            throw new IllegalArgumentException("Donor not found: " + donorId);
-        }
+        Donor donor = findById(donorId)
+                .orElseThrow(() -> new IllegalArgumentException("Donor not found: " + donorId));
 
         List<Map<String, Object>> contacts = jdbc.queryForList(
                 "SELECT ContactType, ContactValue FROM DonorContact WHERE DonorID = ?",
