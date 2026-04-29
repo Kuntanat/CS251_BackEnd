@@ -2,14 +2,22 @@ package com.cs251.backend.service;
 
 import com.cs251.backend.dto.request.DonorRegisterRequest;
 import com.cs251.backend.dto.request.UpdateDonorRequest;
+import com.cs251.backend.dto.response.DonorDashboardResponse;
+import com.cs251.backend.dto.response.DonorProfileResponse;
+import com.cs251.backend.dto.response.DonorDonationHistoryResponse;
 import com.cs251.backend.dto.response.DonorResponse;
+import com.cs251.backend.entity.Account;
+import com.cs251.backend.repository.AccountRepository;
+import com.cs251.backend.repository.DonationReadRepository;
 import com.cs251.backend.repository.DonorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -18,6 +26,8 @@ import java.util.stream.Collectors;
 public class DonorService {
 
     private final DonorRepository donorRepository;
+    private final DonationReadRepository donationReadRepository;
+    private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
 
     // ── Function 1 ────────────────────────────────────────────────────────────
@@ -55,5 +65,64 @@ public class DonorService {
     public List<DonorResponse> search(String name, Integer donorId) {
         return donorRepository.search(name, donorId).stream()
                 .map(DonorResponse::from).collect(Collectors.toList());
+    }
+
+    // ── Donor Self: Profile ──────────────────────────────────────────────────
+    public DonorProfileResponse getProfile(Integer donorId) {
+        Map<String, Object> payload = donorRepository.getProfile(donorId);
+        return DonorProfileResponse.from(payload);
+    }
+
+    // ── Donor Self: Donation history ─────────────────────────────────────────
+    public List<DonorDonationHistoryResponse> getDonationHistory(Integer donorId) {
+        return donationReadRepository.findHistoryByDonorId(donorId);
+    }
+
+    // ── Donor Self: Dashboard summary ────────────────────────────────────────
+    public DonorDashboardResponse getDashboard(Integer donorId) {
+        Map<String, Object> row = donorRepository.getDashboardSummary(donorId);
+
+        LocalDate nextEligible = toLocalDate(row.get("nextEligibleDate"));
+        Integer donorStatus = ((Number) row.get("donorStatus")).intValue();
+
+        boolean ready = donorStatus == 1 && (nextEligible == null || !nextEligible.isAfter(LocalDate.now()));
+
+        return DonorDashboardResponse.builder()
+                .donorId(((Number) row.get("donorId")).intValue())
+                .latestDonationDate(toLocalDate(row.get("latestDonationDate")))
+                .nextEligibleDate(nextEligible)
+                .readyToDonate(ready)
+                .totalDonations(row.get("totalDonations") == null ? 0 : ((Number) row.get("totalDonations")).intValue())
+                .build();
+    }
+
+    // ── Donor Self-Service (/me) ──────────────────────────────────────────────
+
+    public DonorProfileResponse getMyProfile(String username) {
+        Integer donorId = getDonorIdByUsername(username);
+        return getProfile(donorId);
+    }
+
+    public DonorDashboardResponse getMyDashboard(String username) {
+        Integer donorId = getDonorIdByUsername(username);
+        return getDashboard(donorId);
+    }
+
+    public List<DonorDonationHistoryResponse> getMyDonationHistory(String username) {
+        Integer donorId = getDonorIdByUsername(username);
+        return getDonationHistory(donorId);
+    }
+
+    private Integer getDonorIdByUsername(String username) {
+        Account account = accountRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+        return account.getReferenceId();
+    }
+
+    private static LocalDate toLocalDate(Object val) {
+        if (val == null) return null;
+        if (val instanceof java.sql.Date d) return d.toLocalDate();
+        if (val instanceof LocalDate ld) return ld;
+        return null;
     }
 }

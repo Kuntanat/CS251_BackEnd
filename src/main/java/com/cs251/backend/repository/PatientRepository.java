@@ -4,6 +4,7 @@ import com.cs251.backend.dto.request.PatientRequest;
 import com.cs251.backend.entity.Patient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -40,7 +41,7 @@ public class PatientRepository {
 
     // ── Function 9: sp_add_patient ───────────────────────────────────────────
     public Integer save(PatientRequest req) {
-        return jdbc.execute((java.sql.ConnectionCallback<Integer>) con -> {
+        return jdbc.execute((ConnectionCallback<Integer>) con -> {
             try (var cs = con.prepareCall("{CALL sp_add_patient(?,?,?,?,?,?,?,?)}")) {
                 cs.setString(1, req.getNationalId());
                 cs.setString(2, req.getName());

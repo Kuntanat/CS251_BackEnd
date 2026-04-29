@@ -3,6 +3,9 @@ package com.cs251.backend.controller;
 import com.cs251.backend.dto.request.DonorRegisterRequest;
 import com.cs251.backend.dto.request.UpdateDonorRequest;
 import com.cs251.backend.dto.response.ApiResponse;
+import com.cs251.backend.dto.response.DonorDashboardResponse;
+import com.cs251.backend.dto.response.DonorDonationHistoryResponse;
+import com.cs251.backend.dto.response.DonorProfileResponse;
 import com.cs251.backend.dto.response.DonorResponse;
 import com.cs251.backend.service.DonorService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +16,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.Map;
@@ -44,7 +50,7 @@ public class DonorController {
     /** Function 6: แก้ไขข้อมูล Donor */
     @PutMapping("/{donorId}")
     @Operation(summary = "แก้ไขข้อมูลผู้บริจาค (Function 6)")
-    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Integer donorId,
+    public ResponseEntity<ApiResponse<String>> update(@PathVariable Integer donorId,
                                                      @RequestBody UpdateDonorRequest req) {
         donorService.update(donorId, req);
         return ResponseEntity.ok(ApiResponse.ok("Updated"));
@@ -53,7 +59,7 @@ public class DonorController {
     /** Function 7: ระงับสิทธิ์ */
     @PatchMapping("/{donorId}/suspend")
     @Operation(summary = "ระงับสิทธิ์ผู้บริจาค (Function 7)")
-    public ResponseEntity<ApiResponse<Void>> suspend(@PathVariable Integer donorId,
+    public ResponseEntity<ApiResponse<String>> suspend(@PathVariable Integer donorId,
                                                       @RequestBody Map<String, String> body) {
         donorService.suspend(donorId, body.get("remark"));
         return ResponseEntity.ok(ApiResponse.ok("Suspended"));
@@ -62,7 +68,7 @@ public class DonorController {
     /** Function 8: ยกเลิกการระงับ */
     @PatchMapping("/{donorId}/reinstate")
     @Operation(summary = "ยกเลิกการระงับสิทธิ์ (Function 8)")
-    public ResponseEntity<ApiResponse<Void>> reinstate(@PathVariable Integer donorId,
+    public ResponseEntity<ApiResponse<String>> reinstate(@PathVariable Integer donorId,
                                                         @RequestBody Map<String, String> body) {
         donorService.reinstate(donorId, body.get("remark"));
         return ResponseEntity.ok(ApiResponse.ok("Reinstated"));
@@ -75,5 +81,54 @@ public class DonorController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer donorId) {
         return ResponseEntity.ok(ApiResponse.ok(donorService.search(name, donorId)));
+    }
+
+    /** ดูโปรไฟล์ผู้บริจาค (Employee) */
+    @GetMapping("/{donorId}/profile")
+    @Operation(summary = "ดูโปรไฟล์ผู้บริจาค")
+    public ResponseEntity<ApiResponse<DonorProfileResponse>> getProfile(@PathVariable Integer donorId) {
+        return ResponseEntity.ok(ApiResponse.ok(donorService.getProfile(donorId)));
+    }
+
+    /** ดูประวัติการบริจาค (Employee) */
+    @GetMapping("/{donorId}/donations")
+    @Operation(summary = "ดูประวัติการบริจาค")
+    public ResponseEntity<ApiResponse<List<DonorDonationHistoryResponse>>> getDonationHistory(
+            @PathVariable Integer donorId) {
+        return ResponseEntity.ok(ApiResponse.ok(donorService.getDonationHistory(donorId)));
+    }
+
+    /** สรุปภาพรวมผู้บริจาค (Employee) */
+    @GetMapping("/{donorId}/dashboard")
+    @Operation(summary = "สรุปภาพรวมผู้บริจาค")
+    public ResponseEntity<ApiResponse<DonorDashboardResponse>> getDashboard(@PathVariable Integer donorId) {
+        return ResponseEntity.ok(ApiResponse.ok(donorService.getDashboard(donorId)));
+    }
+
+    // ── Donor Self-Service (/me) ──────────────────────────────────────────────
+
+    /** โปรไฟล์ตัวเอง (Donor only) */
+    @GetMapping("/me/profile")
+    @PreAuthorize("hasRole('DONOR')")
+    @Operation(summary = "โปรไฟล์ผู้บริจาค (Self)")
+    public ResponseEntity<ApiResponse<DonorProfileResponse>> getMyProfile(Authentication auth) {
+        return ResponseEntity.ok(ApiResponse.ok(donorService.getMyProfile(auth.getName())));
+    }
+
+    /** Dashboard ตัวเอง (Donor only) */
+    @GetMapping("/me/dashboard")
+    @PreAuthorize("hasRole('DONOR')")
+    @Operation(summary = "สรุปภาพรวมผู้บริจาค (Self)")
+    public ResponseEntity<ApiResponse<DonorDashboardResponse>> getMyDashboard(Authentication auth) {
+        return ResponseEntity.ok(ApiResponse.ok(donorService.getMyDashboard(auth.getName())));
+    }
+
+    /** ประวัติการบริจาคตัวเอง (Donor only) */
+    @GetMapping("/me/donations")
+    @PreAuthorize("hasRole('DONOR')")
+    @Operation(summary = "ประวัติการบริจาค (Self)")
+    public ResponseEntity<ApiResponse<List<DonorDonationHistoryResponse>>> getMyDonationHistory(
+            Authentication auth) {
+        return ResponseEntity.ok(ApiResponse.ok(donorService.getMyDonationHistory(auth.getName())));
     }
 }

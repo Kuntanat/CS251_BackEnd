@@ -37,4 +37,16 @@ public class DashboardService {
     public List<Map<String, Object>> getDonationReport(int month, int year) {
         return dashboardRepository.getDonationReport(month, year);
     }
+
+    public Map<String, Object> getStats() {
+        return dashboardRepository.getStats();
+    }
+
+    public List<Map<String, Object>> getBloodStock() {
+        return dashboardRepository.getBloodStock();
+    }
+
+    public List<Map<String, Object>> getUsageReport(int month, int year) {
+        return dashboardRepository.getUsageReport(month, year);
+    }
 }

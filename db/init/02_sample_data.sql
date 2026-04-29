@@ -54,12 +54,12 @@ INSERT INTO Patient (PatientID, NationalID, Name, Gender, BloodGroup, RhFactor, 
 -- ────────────────────────────────────────────────────────────
 --  Account
 -- ────────────────────────────────────────────────────────────
+-- password: Admin1234  →  verified BCrypt $2a$10$ hash
 INSERT INTO Account (Username, Password, UserType, Status, ReferenceID) VALUES
--- password: Admin1234 (bcrypt hash ตัวอย่าง)
-('admin',        '$2b$12$R9h/cMIsIiQ7WkCuZpJCEuQZ2vHFJQwXgf2C8RjKSi0AyV8kLyVYa', 'Employee', 1, 8001),
-('malee.nurse',  '$2b$12$R9h/cMIsIiQ7WkCuZpJCEuQZ2vHFJQwXgf2C8RjKSi0AyV8kLyVYa', 'Employee', 1, 8002),
-('vichai.donor', '$2b$12$R9h/cMIsIiQ7WkCuZpJCEuQZ2vHFJQwXgf2C8RjKSi0AyV8kLyVYa', 'Donor',    1, 1001),
-('nipa.donor',   '$2b$12$R9h/cMIsIiQ7WkCuZpJCEuQZ2vHFJQwXgf2C8RjKSi0AyV8kLyVYa', 'Donor',    1, 1002);
+('admin',        '$2a$10$ipeeew.x8KNDnVOaApAs2.H8m9DQlL02Sd/5H6qTmme9cnorhfu3q', 'Employee', 1, 8001),
+('malee.nurse',  '$2a$10$ipeeew.x8KNDnVOaApAs2.H8m9DQlL02Sd/5H6qTmme9cnorhfu3q', 'Employee', 1, 8002),
+('vichai.donor', '$2a$10$ipeeew.x8KNDnVOaApAs2.H8m9DQlL02Sd/5H6qTmme9cnorhfu3q', 'Donor',    1, 1001),
+('nipa.donor',   '$2a$10$ipeeew.x8KNDnVOaApAs2.H8m9DQlL02Sd/5H6qTmme9cnorhfu3q', 'Donor',    1, 1002);
 
 -- ────────────────────────────────────────────────────────────
 --  Donation

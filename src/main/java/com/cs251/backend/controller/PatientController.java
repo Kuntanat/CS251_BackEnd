@@ -42,7 +42,7 @@ public class PatientController {
     /** Function 10: แก้ไขข้อมูลผู้ป่วย */
     @PutMapping("/{patientId}")
     @Operation(summary = "แก้ไขข้อมูลผู้ป่วย (Function 10)")
-    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Integer patientId,
+    public ResponseEntity<ApiResponse<String>> update(@PathVariable Integer patientId,
                                                      @Valid @RequestBody PatientRequest req) {
         patientService.update(patientId, req);
         return ResponseEntity.ok(ApiResponse.ok("Updated"));
@@ -55,5 +55,12 @@ public class PatientController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer patientId) {
         return ResponseEntity.ok(ApiResponse.ok(patientService.search(name, patientId)));
+    }
+
+    /** ค้นหาผู้ป่วยตาม ID */
+    @GetMapping("/{patientId}")
+    @Operation(summary = "ดูข้อมูลผู้ป่วยตาม ID")
+    public ResponseEntity<ApiResponse<PatientResponse>> findById(@PathVariable Integer patientId) {
+        return ResponseEntity.ok(ApiResponse.ok(patientService.findById(patientId)));
     }
 }

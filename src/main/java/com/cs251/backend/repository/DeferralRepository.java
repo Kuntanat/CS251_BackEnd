@@ -2,6 +2,7 @@ package com.cs251.backend.repository;
 
 import com.cs251.backend.dto.request.DeferralRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -20,7 +21,7 @@ public class DeferralRepository {
     // ── Function 20: sp_record_deferral ──────────────────────────────────────
     // Procedure อัปเดต Donor.Status → 0 อัตโนมัติอยู่แล้ว
     public Integer save(DeferralRequest req) {
-        return jdbc.execute((java.sql.ConnectionCallback<Integer>) con -> {
+        return jdbc.execute((ConnectionCallback<Integer>) con -> {
             try (var cs = con.prepareCall("{CALL sp_record_deferral(?,?,?,?,?,?)}")) {
                 cs.setString(1, req.getDeferralType());
                 cs.setString(2, req.getReasonCategory());

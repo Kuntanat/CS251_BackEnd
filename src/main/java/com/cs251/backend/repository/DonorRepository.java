@@ -5,6 +5,7 @@ import com.cs251.backend.dto.request.UpdateDonorRequest;
 import com.cs251.backend.entity.Donor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.Date;
 import java.sql.Types;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -38,7 +40,7 @@ public class DonorRepository {
 
     // ── Function 1: sp_register_donor ────────────────────────────────────────
     public Integer register(DonorRegisterRequest req, String hashedPassword) {
-        return jdbc.execute((java.sql.ConnectionCallback<Integer>) con -> {
+        return jdbc.execute((ConnectionCallback<Integer>) con -> {
             try (var cs = con.prepareCall("{CALL sp_register_donor(?,?,?,?,?,?,?,?,?,?,?,?,?)}")) {
                 cs.setString(1,  req.getName());
                 cs.setString(2,  req.getNationalId());
@@ -64,17 +66,35 @@ public class DonorRepository {
         return jdbc.query("CALL sp_list_donors()", DONOR_MAPPER);
     }
 
-    // ── Function 6: sp_update_donor ──────────────────────────────────────────
+    // ── Function 6: update donor (COALESCE — null fields keep existing values) ─
     public void update(Integer donorId, UpdateDonorRequest req) {
-        jdbc.update("CALL sp_update_donor(?,?,?,?,?,?,?)",
-                donorId,
+        jdbc.update("""
+                UPDATE Donor SET
+                    Name              = COALESCE(?, Name),
+                    Birthday          = COALESCE(?, Birthday),
+                    CongenitalDisease = COALESCE(?, CongenitalDisease)
+                WHERE DonorID = ?
+                """,
                 req.getName(),
                 req.getBirthday() != null ? Date.valueOf(req.getBirthday()) : null,
                 req.getCongenitalDisease(),
-                req.getPhone(),
-                req.getEmail(),
-                req.getPlace()
+                donorId
         );
+        if (req.getPhone() != null && !req.getPhone().isBlank()) {
+            jdbc.update(
+                "UPDATE DonorContact SET ContactValue = ? WHERE DonorID = ? AND ContactType = 'Phone'",
+                req.getPhone(), donorId);
+        }
+        if (req.getEmail() != null && !req.getEmail().isBlank()) {
+            jdbc.update(
+                "UPDATE DonorContact SET ContactValue = ? WHERE DonorID = ? AND ContactType = 'Email'",
+                req.getEmail(), donorId);
+        }
+        if (req.getPlace() != null && !req.getPlace().isBlank()) {
+            jdbc.update(
+                "UPDATE DonorContact SET ContactValue = ? WHERE DonorID = ? AND ContactType = 'Place'",
+                req.getPlace(), donorId);
+        }
     }
 
     // ── Function 7: sp_suspend_donor ─────────────────────────────────────────
@@ -105,5 +125,41 @@ public class DonorRepository {
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
+    }
+
+    // ── Donor Self: Profile (Donor + DonorContact) ───────────────────────────
+    public Map<String, Object> getProfile(Integer donorId) {
+        Donor donor = findById(donorId)
+                .orElseThrow(() -> new IllegalArgumentException("Donor not found: " + donorId));
+
+        List<Map<String, Object>> contacts = jdbc.queryForList(
+                "SELECT ContactType, ContactValue FROM DonorContact WHERE DonorID = ?",
+                donorId
+        );
+
+        return Map.of(
+                "donor", donor,
+                "contacts", contacts
+        );
+    }
+
+    // ── Donor Self: Dashboard summary ────────────────────────────────────────
+    public Map<String, Object> getDashboardSummary(Integer donorId) {
+        // รวมข้อมูลหลักที่ Figma ต้องใช้: latest donation, next eligible, total donation count
+        return jdbc.queryForMap(
+                """
+                SELECT
+                    d.DonorID AS donorId,
+                    d.Status AS donorStatus,
+                    MAX(dn.DonationDate) AS latestDonationDate,
+                    MAX(dn.NextEligibleDate) AS nextEligibleDate,
+                    SUM(CASE WHEN dn.Volume > 0 THEN 1 ELSE 0 END) AS totalDonations
+                FROM Donor d
+                LEFT JOIN Donation dn ON dn.DonorID = d.DonorID
+                WHERE d.DonorID = ?
+                GROUP BY d.DonorID, d.Status
+                """,
+                donorId
+        );
     }
 }

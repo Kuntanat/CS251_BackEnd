@@ -10,7 +10,16 @@ target/
 *.iws
 .vscode/
 *.suo
-*.eclipse
+
+# Eclipse / Spring Tools Suite (STS)
+.classpath
+.project
+.factorypath
+.settings/
+
+# (Optional) Spring Tools Suite metadata
+.springBeans
+.sts4-cache/
 
 # Logs
 logs/
