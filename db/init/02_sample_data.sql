@@ -3,6 +3,8 @@
 --  สำหรับ development / testing เท่านั้น
 -- ============================================================
 
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 USE cs251_db;
 
 -- ────────────────────────────────────────────────────────────
@@ -47,9 +49,9 @@ INSERT INTO DonorContact (ContactType, ContactValue, DonorID) VALUES
 --  Patient
 -- ────────────────────────────────────────────────────────────
 INSERT INTO Patient (PatientID, NationalID, Name, Gender, BloodGroup, RhFactor, Birthday, TransfusionStatus) VALUES
-(9001, '1300011122235', 'Malee Jan',       'F', 'A',  '+', '1975-04-12', 'รอรับเลือด'),
+(9001, '1300011122235', 'Malee Jan',       'F', 'A',  '+', '1975-04-12', 'จองเลือดล่วงหน้า'),
 (9002, '2500022233346', 'Somsak Decha',    'M', 'O',  '+', '1960-09-30', 'ขอรับเลือดด่วน'),
-(9003, '3700033344457', 'Pranee Chumdee',  'F', 'B',  '-', '1982-01-17', 'รับเลือดแล้ว');
+(9003, '3700033344457', 'Pranee Chumdee',  'F', 'B',  '-', '1982-01-17', 'ได้รับเลือดแล้ว');
 
 -- ────────────────────────────────────────────────────────────
 --  Account

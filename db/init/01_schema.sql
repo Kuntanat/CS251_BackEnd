@@ -3,6 +3,8 @@
 --  Group 9 | สร้าง: 2026
 -- ============================================================
 
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 CREATE DATABASE IF NOT EXISTS cs251_db
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
@@ -45,7 +47,7 @@ CREATE TABLE IF NOT EXISTS Donor (
     Gender             CHAR(1)      NOT NULL COMMENT 'M = ชาย, F = หญิง',
     Birthday           DATE         NOT NULL COMMENT 'วันเกิด',
     Status             TINYINT      NOT NULL DEFAULT 1 COMMENT '1=Active, 0=Inactive',
-    Remark             VARCHAR(20)  NULL     COMMENT 'หมายเหตุ',
+    Remark             VARCHAR(100)  NULL     COMMENT 'หมายเหตุ',
     BloodGroup         VARCHAR(2)   NOT NULL COMMENT 'หมู่เลือด A,B,AB,O',
     RhFactor           CHAR(1)      NOT NULL COMMENT 'Rh Factor + หรือ -',
     CongenitalDisease  VARCHAR(255) NULL     COMMENT 'โรคประจำตัว',
@@ -82,7 +84,7 @@ CREATE TABLE IF NOT EXISTS Patient (
     BloodGroup        VARCHAR(2)   NOT NULL COMMENT 'หมู่เลือด A,B,AB,O',
     RhFactor          CHAR(1)      NOT NULL COMMENT 'Rh Factor + หรือ -',
     Birthday          DATE         NOT NULL COMMENT 'วันเกิด',
-    TransfusionStatus VARCHAR(20)  NULL     COMMENT 'สถานะการรับเลือด',
+    TransfusionStatus VARCHAR(100)  NULL     COMMENT 'สถานะการรับเลือด',
 
     CONSTRAINT pk_patient          PRIMARY KEY (PatientID),
     CONSTRAINT uq_patient_national UNIQUE      (NationalID),
@@ -215,8 +217,6 @@ CREATE INDEX idx_donor_blood     ON Donor(BloodGroup, RhFactor);
 CREATE INDEX idx_bag_status      ON BloodBag(BagStatus, BloodGroup, RhFactor);
 CREATE INDEX idx_bag_expiry      ON BloodBag(ExpiryDate);
 CREATE INDEX idx_donation_donor  ON Donation(DonorID);
-CREATE INDEX idx_deferral_donor  ON Deferral(DonorID);
-CREATE INDEX idx_usage_patient   ON BloodUsage(PatientID);
 CREATE INDEX idx_deferral_donor  ON Deferral(DonorID);
 CREATE INDEX idx_usage_patient   ON BloodUsage(PatientID);
 CREATE INDEX idx_account_ref     ON Account(UserType, ReferenceID);

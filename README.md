@@ -110,32 +110,7 @@ CS251_BackEnd/
 
 ---
 
-### วิธีที่ 1: รันด้วย Docker Compose (แนะนำ)
-
-```bash
-# 1. Clone repository
-git clone https://github.com/your-org/CS251_BackEnd.git
-cd CS251_BackEnd
-
-# 2. ตั้งค่า environment
-cp .env.example .env
-# แก้ไข .env ตามข้อมูลจริง
-
-# 3. รัน MySQL + App
-docker compose up -d
-
-# 4. รัน MySQL + App + phpMyAdmin (dev mode)
-docker compose --profile dev up -d
-
-# ดู logs
-docker compose logs -f app
-```
-
-> **MySQL จะรัน SQL scripts อัตโนมัติ** (`db/init/`) เมื่อสร้าง container ครั้งแรก
-
----
-
-### วิธีที่ 2: รันตรง (Local)
+### วิธีที่ 1: รันตรง (Local)
 
 ```bash
 # 1. สร้าง MySQL database
@@ -146,6 +121,7 @@ exit;
 # 2. รัน schema + sample data
 mysql -u root -p cs251_db < db/init/01_schema.sql
 mysql -u root -p cs251_db < db/init/02_sample_data.sql
+mysql -u root -p cs251_db < db/init/03_procedures.sql
 
 # 3. ตั้งค่า .env
 cp .env.example .env
